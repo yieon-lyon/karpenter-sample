@@ -1,0 +1,13 @@
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: lyon-cluster-ebs20
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: "lyon-cluster"
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeType: gp3
+        volumeSize: 20Gi
+        deleteOnTermination: true

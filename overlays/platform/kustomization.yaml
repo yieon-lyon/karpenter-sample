@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - specific
+
+namespace: karpenter
+
+patches:
+  - target:
+      kind: ConfigMap
+      name: karpenter-global-settings
+    path: patches/patch-global-settings-cm.yaml
+  - target:
+      kind: ServiceAccount
+    path: patches/patch-service-account.yaml
+  - target:
+      kind: AWSNodeTemplate
+      name: lyon-cluster.*
+    path: patches/patch-node-templates.yaml
+  - target:
+      kind: Provisioner
+      name: default
+    path: patches/provisioners/patch-default.yaml
+  - target:
+      kind: Provisioner
+      name: service
+    path: patches/provisioners/patch-service.yaml
+  - target:
+      kind: Provisioner
+      name: cicd
+    path: patches/provisioners/patch-cicd.yaml
+  - target:
+      kind: Provisioner
+      name: monitoring
+    path: patches/provisioners/patch-monitoring.yaml
+  - target:
+      kind: Provisioner
+      name: system-critical
+    path: patches/provisioners/patch-system-critical.yaml

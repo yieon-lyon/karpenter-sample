@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: karpenter-global-settings
+  namespace: karpenter
+data:
+  "aws.clusterEndpoint": ""
+  "aws.clusterName": "lyon-cluster-platform"
+  "aws.defaultInstanceProfile": "KarpenterNodeInstanceProfile-lyon-cluster-platform"
+  "aws.enableENILimitedPodDensity": "true"
+  "aws.enablePodENI": "false"
+  "aws.interruptionQueueName": ""
+  "aws.isolatedVPC": "false"
+  "aws.vmMemoryOverheadPercent": "0.075"
+  "batchIdleDuration": "1s"
+  "batchMaxDuration": "10s"
+  "featureGates.driftEnabled": "false"

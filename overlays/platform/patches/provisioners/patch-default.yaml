@@ -1,0 +1,26 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: karpenter.k8s.aws/instance-family
+      operator: In
+      values: [ t3, t3a ]
+    - key: karpenter.k8s.aws/instance-size
+      operator: In
+      values: [ medium, large ]
+    - key: topology.kubernetes.io/zone
+      operator: In
+      values: [ ap-northeast-2a, ap-northeast-2c ]
+    - key: eks.amazonaws.com/nodegroup
+      operator: In
+      values: [ default ]
+    - key: capacity-spread # karpenter.sh/capacity-type = on-demand (default)
+      operator: In
+      values: [ "on-demand-1", "on-demand-2" ]
+  ttlSecondsUntilExpired: 604800
+  ttlSecondsAfterEmpty: 30
+  weight: 10
+  providerRef:
+    name: lyon-cluster
