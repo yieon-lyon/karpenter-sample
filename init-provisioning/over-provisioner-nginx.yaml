@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: over-provisioning
+  name: over-provisioning
+  namespace: default
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: over-provisioning
+  template:
+    metadata:
+      labels:
+        app: over-provisioning
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.16-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 1500m
+              memory: 6Gi
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: default
