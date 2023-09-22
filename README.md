@@ -2,7 +2,14 @@
 
 Karpenter Docs
 
-[Documentation](https://karpenter.sh/docs/)
+- [Documentation](https://karpenter.sh/docs/)
+- [GitHub](https://github.com/aws/karpenter)
+
+### Releases
+```text
+2023-09-22: v0.30.0
+2023-08-29: v0.29.2
+```
 
 Karpenter는 적시에 적절한 노드로 Kubernetes 인프라를 단순화합니다.
 

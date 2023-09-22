@@ -5,8 +5,6 @@ resources:
   - ../../base
   - specific
 
-namespace: karpenter
-
 patches:
   - target:
       kind: ConfigMap
