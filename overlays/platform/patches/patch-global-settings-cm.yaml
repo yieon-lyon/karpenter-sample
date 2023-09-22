@@ -4,6 +4,9 @@ metadata:
   name: karpenter-global-settings
   namespace: karpenter
 data:
+  "aws.assumeRoleARN": ""
+  "aws.assumeRoleDuration": "15m"
+  "aws.clusterCABundle": ""
   "aws.clusterEndpoint": ""
   "aws.clusterName": "lyon-cluster-platform"
   "aws.defaultInstanceProfile": "KarpenterNodeInstanceProfile-lyon-cluster-platform"
