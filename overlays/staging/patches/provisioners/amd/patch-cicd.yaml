@@ -1,7 +1,7 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: c5-ebs50
+  name: cicd
 spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
@@ -9,24 +9,17 @@ spec:
       values: [ c5 ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ large, xlarge, 2xlarge ]
+      values: [ xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
     - key: karpenter.sh/capacity-type
       operator: In
       values: [ on-demand ]
-    - key: kubernetes.io/arch
-      operator: In
-      values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ smart-match ]
+      values: [ cicd ]
   ttlSecondsAfterEmpty: 60
   weight: 10
   providerRef:
-    name: lyon-cluster-ebs50
-  taints:
-    - key: system-type
-      effect: NoSchedule
-      value: service
+    name: lyon-cluster-ebs20

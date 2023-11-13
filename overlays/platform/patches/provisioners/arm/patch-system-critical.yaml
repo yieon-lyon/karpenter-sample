@@ -1,32 +1,31 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: c5-ebs50
+  name: system-critical-arm64
 spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: [ c5 ]
+      values: [ t4g ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ large, xlarge, 2xlarge ]
+      values: [ medium, large, xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
     - key: karpenter.sh/capacity-type
       operator: In
       values: [ on-demand ]
-    - key: kubernetes.io/arch
-      operator: In
-      values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ smart-match ]
-  ttlSecondsAfterEmpty: 60
+      values: [ system-critical ]
+  ttlSecondsAfterEmpty: 600
   weight: 10
   providerRef:
-    name: lyon-cluster-ebs50
+    name: lyon-cluster-ebs20
   taints:
-    - key: system-type
+    - key: system-critical
       effect: NoSchedule
-      value: service
+      value: yes
+  labels:
+    system-critical: yes

@@ -1,12 +1,12 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: service
+  name: system-critical
 spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: [ m5 ]
+      values: [ t3 ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
       values: [ medium, large, xlarge ]
@@ -18,14 +18,14 @@ spec:
       values: [ on-demand ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ account-service, ad-service, cash-service,
-                provider-service, quote-service, request-service, service-service,
-                frontend ]
-  ttlSecondsAfterEmpty: 60
+      values: [ system-critical ]
+  ttlSecondsAfterEmpty: 600
   weight: 10
   providerRef:
     name: lyon-cluster-ebs20
   taints:
-    - key: system-type
+    - key: system-critical
       effect: NoSchedule
-      value: service
+      value: yes
+  labels:
+    system-critical: yes

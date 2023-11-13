@@ -109,5 +109,4 @@ Karpenter를 사용하기 위한 Cluster, Node Role을 설정해야 합니다.
 ```bash
 kubectl apply -k platform
 kubectl apply -k staging
-kubectl apply -k production
 ```

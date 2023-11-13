@@ -1,15 +1,15 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: default
+  name: service-arm64
 spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: [ m5 ]
+      values: [ m6g ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ medium, large ]
+      values: [ large, xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
@@ -18,11 +18,14 @@ spec:
       values: [ on-demand ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ default ]
-#  ttlSecondsUntilExpired: 604800
-#  ttlSecondsAfterEmpty: 60
-  consolidation:
-    enabled: true
+      values: [ account-service, ad-service, cash-service,
+                provider-service, quote-service, request-service, service-service,
+                frontend ]
+  ttlSecondsAfterEmpty: 60
   weight: 10
   providerRef:
-    name: lyon-cluster-ebs30
+    name: lyon-cluster-ebs20
+  taints:
+    - key: system-type
+      effect: NoSchedule
+      value: service

@@ -6,21 +6,20 @@ spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: [ t3, t3a ]
+      values: [ m5 ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ medium, large ]
+      values: [ large, xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: [ on-demand ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
       values: [ default ]
-    - key: capacity-spread # karpenter.sh/capacity-type = on-demand (default)
-      operator: In
-      values: [ "on-demand-1", "on-demand-2" ]
-  ttlSecondsUntilExpired: 604800
-  ttlSecondsAfterEmpty: 30
+  ttlSecondsAfterEmpty: 60
   weight: 10
   providerRef:
-    name: lyon-cluster
+    name: lyon-cluster-ebs30

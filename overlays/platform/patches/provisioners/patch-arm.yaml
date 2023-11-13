@@ -1,0 +1,13 @@
+# common arm
+- op: add
+  path: /spec/requirements/0
+  value:
+    key: kubernetes.io/arch
+    operator: In
+    values: [ arm64 ]
+- op: add
+  path: /spec/taints/1
+  value:
+    key: arch-type
+    effect: NoSchedule
+    value: arm
