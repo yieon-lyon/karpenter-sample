@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pause-pods
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: pause-pods
+  template:
+    metadata:
+      labels:
+        run: pause-pods
+    spec:
+      priorityClassName: pause-pods
+      containers:
+        - name: reserve-resources
+          image: registry.k8s.io/pause
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: default
+      tolerations:
+        - key: system-type
+          operator: Equal
+          effect: NoSchedule
+          value: test
+        - key: arch-type
+          operator: Equal
+          effect: NoSchedule
+          value: amd
