@@ -9,13 +9,16 @@ spec:
       values: [ m5 ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ medium, large, xlarge ]
+      values: [ large, xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
     - key: karpenter.sh/capacity-type
       operator: In
       values: [ on-demand ]
+    - key: kubernetes.io/arch
+      operator: In
+      values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
       values: [ chat-service, apigateway ]

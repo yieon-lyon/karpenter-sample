@@ -6,5 +6,5 @@ resources:
   - provisioners/m5-ebs50.yaml
   - provisioners/c5-ebs20.yaml
   - provisioners/c5-ebs50.yaml
-  # test server provisioner (test-1~4, seo, tm, qa, design ...)
+  # test server provisioner
   - provisioners/test.yaml

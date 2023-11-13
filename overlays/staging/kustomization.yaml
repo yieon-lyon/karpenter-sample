@@ -17,23 +17,55 @@ patches:
       kind: AWSNodeTemplate
       name: lyon-cluster.*
     path: patches/patch-node-templates.yaml
+  # Common provisioner settings
+  # 1. amd64
   - target:
       kind: Provisioner
       name: default
-    path: patches/provisioners/patch-default.yaml
+    path: patches/provisioners/amd/patch-default.yaml
   - target:
       kind: Provisioner
       name: service
-    path: patches/provisioners/patch-service.yaml
+    path: patches/provisioners/amd/patch-service.yaml
   - target:
       kind: Provisioner
       name: cicd
-    path: patches/provisioners/patch-cicd.yaml
+    path: patches/provisioners/amd/patch-cicd.yaml
   - target:
       kind: Provisioner
       name: monitoring
-    path: patches/provisioners/patch-monitoring.yaml
+    path: patches/provisioners/amd/patch-monitoring.yaml
   - target:
       kind: Provisioner
       name: system-critical
-    path: patches/provisioners/patch-system-critical.yaml
+    path: patches/provisioners/amd/patch-system-critical.yaml
+  # 2. arm64
+  - target:
+      kind: Provisioner
+      name: default
+    path: patches/provisioners/arm/patch-default.yaml
+  - target:
+      kind: Provisioner
+      name: service
+    path: patches/provisioners/arm/patch-service.yaml
+  - target:
+      kind: Provisioner
+      name: cicd
+    path: patches/provisioners/arm/patch-cicd.yaml
+  - target:
+      kind: Provisioner
+      name: monitoring
+    path: patches/provisioners/arm/patch-monitoring.yaml
+  - target:
+      kind: Provisioner
+      name: system-critical
+    path: patches/provisioners/arm/patch-system-critical.yaml
+  # Provisioner amd64/arm64 settings
+  - target:
+      kind: Provisioner
+      labelSelector: kubernetes.io/arch=arm
+    path: patches/provisioners/patch-arm.yaml
+  - target:
+      kind: Provisioner
+      labelSelector: kubernetes.io/arch=amd
+    path: patches/provisioners/patch-amd.yaml

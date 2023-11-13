@@ -12,7 +12,7 @@ data:
   "aws.defaultInstanceProfile": "KarpenterNodeInstanceProfile-lyon-cluster-staging"
   "aws.enableENILimitedPodDensity": "true"
   "aws.enablePodENI": "false"
-  "aws.interruptionQueueName": ""
+  "aws.interruptionQueueName": "lyon-cluster-staging"
   "aws.isolatedVPC": "false"
   "aws.vmMemoryOverheadPercent": "0.075"
   "batchIdleDuration": "1s"

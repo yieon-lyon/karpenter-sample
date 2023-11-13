@@ -1,28 +1,31 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: cicd
+  name: service
 spec:
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: [ t3, t3a ]
+      values: [ m5 ]
     - key: karpenter.k8s.aws/instance-size
       operator: In
-      values: [ large ]
+      values: [ large, xlarge ]
     - key: topology.kubernetes.io/zone
       operator: In
       values: [ ap-northeast-2a, ap-northeast-2c ]
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: [ on-demand ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ cicd ]
-  ttlSecondsUntilExpired: 604800
-  ttlSecondsAfterEmpty: 30
+      values: [ account-service, ad-service, cash-service,
+                provider-service, quote-service, request-service, service-service,
+                frontend ]
+  ttlSecondsAfterEmpty: 60
   weight: 10
   providerRef:
     name: lyon-cluster-ebs20
-# TODO: ArgoCD의 Tolerations 설정 적용이 필요한 시점에 활성화한다.
-#  taints:
-#    - key: system-type
-#      effect: NoSchedule
-#      value: cicd
+  taints:
+    - key: system-type
+      effect: NoSchedule
+      value: service

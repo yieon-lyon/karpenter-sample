@@ -5,4 +5,5 @@ resources:
   - karpenter.yaml
   - crds
   - node-templates
-  - provisoners
+  - provisoners/amd64
+  - provisoners/arm64

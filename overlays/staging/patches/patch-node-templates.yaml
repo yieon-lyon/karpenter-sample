@@ -5,5 +5,7 @@ metadata:
 spec:
   securityGroupSelector:
     karpenter.sh/discovery: "lyon-cluster-staging"
+  subnetSelector:
+    aws-ids: "subnet-XXXXXXXXXXXXXXXXX, subnet-XXXXXXXXXXXXXXXXX"
   metadataOptions:
     httpTokens: optional

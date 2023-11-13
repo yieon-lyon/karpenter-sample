@@ -3,8 +3,6 @@ kind: AWSNodeTemplate
 metadata:
   name: lyon-cluster-ebs50
 spec:
-  subnetSelector:
-    karpenter.sh/discovery: "lyon-cluster"
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:

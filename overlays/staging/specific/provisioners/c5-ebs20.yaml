@@ -16,6 +16,9 @@ spec:
     - key: karpenter.sh/capacity-type
       operator: In
       values: [ on-demand ]
+    - key: kubernetes.io/arch
+      operator: In
+      values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
       values: [ lyon-gateway ]
