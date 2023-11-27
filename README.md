@@ -39,12 +39,20 @@ Karpenter는 예약되지 않은 포드의 총 리소스 요청을 관찰하고 
   - crd
   - aws-note-templates
   - provisioners
+- duplicated-spot
+  - provisioners
+- init-provisioning
+  - (CAS에서 Karpenter로 migration시 안정적인 Pod 전환을 위한 항목)
+- over-provisioning
+  - (서비스의 고가용성 확보 및 업타임 속도 개선을 위한 항목)
+    - ex. pod uptime 60~70s -> 10~15s
 - overlays
-  - patches
-    - common ...
-    - provisioners/
-  - specific
-    - add custom
+  - envs(dev, staging)
+    - patches
+      - common ...
+      - provisioners/
+    - specific
+      - add custom
 
 #### karpenter kustomize의 provisioner는 다음의 목적성을 가진 NodeGroups에 대해 정의합니다.
   - default
