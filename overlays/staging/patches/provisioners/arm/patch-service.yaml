@@ -15,8 +15,7 @@ spec:
       values: [ ap-northeast-2a, ap-northeast-2c ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ account-service, ad-service, cash-service,
-                provider-service, quote-service, request-service, service-service,
+      values: [ account-service, services
                 frontend ]
   ttlSecondsAfterEmpty: 60
   weight: 10

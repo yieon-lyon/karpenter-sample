@@ -16,7 +16,8 @@ spec:
     - key: eks.amazonaws.com/nodegroup
       operator: In
       values: [ default ]
-  ttlSecondsAfterEmpty: 60
+  consolidation:
+    enabled: true
   weight: 10
   providerRef:
     name: lyon-cluster-ebs30

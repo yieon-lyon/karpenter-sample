@@ -2,18 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: over-provisioning
-  name: over-provisioning
+    app: init-provisioning
+  name: init-provisioning
   namespace: default
 spec:
   replicas: 100
   selector:
     matchLabels:
-      app: over-provisioning
+      app: init-provisioning
   template:
     metadata:
+      annotations:
+        karpenter.sh/do-not-evict: "true"
       labels:
-        app: over-provisioning
+        app: init-provisioning
     spec:
       containers:
         - name: nginx

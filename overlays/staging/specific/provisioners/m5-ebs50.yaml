@@ -21,8 +21,9 @@ spec:
       values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ chat-service, apigateway ]
-  ttlSecondsAfterEmpty: 60
+      values: [ m5-service, apigateway ]
+  consolidation:
+    enabled: true
   weight: 10
   providerRef:
     name: lyon-cluster-ebs50
