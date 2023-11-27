@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
+  - ../../duplicated-spot
   - specific
 
 patches:
@@ -21,44 +22,44 @@ patches:
   # 1. amd64
   - target:
       kind: Provisioner
-      name: default
+      name: .*default.*
     path: patches/provisioners/amd/patch-default.yaml
   - target:
       kind: Provisioner
-      name: service
+      name: .*service.*
     path: patches/provisioners/amd/patch-service.yaml
   - target:
       kind: Provisioner
-      name: cicd
+      name: .*cicd.*
     path: patches/provisioners/amd/patch-cicd.yaml
   - target:
       kind: Provisioner
-      name: monitoring
+      name: .*monitoring.*
     path: patches/provisioners/amd/patch-monitoring.yaml
   - target:
       kind: Provisioner
-      name: system-critical
+      name: .*system-critical.*
     path: patches/provisioners/amd/patch-system-critical.yaml
   # 2. arm64
   - target:
       kind: Provisioner
-      name: default
+      name: .*default-arm64.*
     path: patches/provisioners/arm/patch-default.yaml
   - target:
       kind: Provisioner
-      name: service
+      name: .*service-arm64.*
     path: patches/provisioners/arm/patch-service.yaml
   - target:
       kind: Provisioner
-      name: cicd
+      name: .*cicd-arm64.*
     path: patches/provisioners/arm/patch-cicd.yaml
   - target:
       kind: Provisioner
-      name: monitoring
+      name: .*monitoring-arm64.*
     path: patches/provisioners/arm/patch-monitoring.yaml
   - target:
       kind: Provisioner
-      name: system-critical
+      name: .*system-critical-arm64.*
     path: patches/provisioners/arm/patch-system-critical.yaml
   # Provisioner amd64/arm64 settings
   - target:
@@ -69,3 +70,9 @@ patches:
       kind: Provisioner
       labelSelector: kubernetes.io/arch=amd
     path: patches/provisioners/patch-amd.yaml
+
+  # duplicated-spot provisioner all
+  - target:
+      kind: Provisioner
+      name: .*spot
+    path: patches/provisioners/patch-spot.yaml
