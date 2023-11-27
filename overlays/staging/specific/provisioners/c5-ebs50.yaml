@@ -21,8 +21,9 @@ spec:
       values: [ amd64 ]
     - key: eks.amazonaws.com/nodegroup
       operator: In
-      values: [ smart-match ]
-  ttlSecondsAfterEmpty: 60
+      values: [ c5-service ]
+  consolidation:
+    enabled: true
   weight: 10
   providerRef:
     name: lyon-cluster-ebs50

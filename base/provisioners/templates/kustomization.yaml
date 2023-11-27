@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - default.yaml
+  - cicd.yaml
+  - service.yaml
+  - monitoring.yaml
+  - system-critical.yaml
