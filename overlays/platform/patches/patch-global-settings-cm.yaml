@@ -17,4 +17,4 @@ data:
   "aws.vmMemoryOverheadPercent": "0.075"
   "batchIdleDuration": "1s"
   "batchMaxDuration": "10s"
-  "featureGates.driftEnabled": "false"
+  "featureGates.driftEnabled": "true"
