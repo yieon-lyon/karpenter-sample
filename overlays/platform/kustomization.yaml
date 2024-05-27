@@ -2,7 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  # Main
   - ../../base
+  # [README 참조]
   - ../../duplicated-spot
   - specific
 
@@ -15,6 +17,87 @@ patches:
       kind: ServiceAccount
     path: patches/patch-service-account.yaml
   - target:
+      kind: EC2NodeClass
+      name: lyon-cluster.*
+    path: patches/patch-ec2nodeclasses.yaml
+  # Common nodepool settings
+  # 1. amd64
+  - target:
+      kind: NodePool
+      name: .*default.*
+    path: patches/nodepools/amd/patch-default.yaml
+  - target:
+      kind: NodePool
+      name: .*cron.*
+    path: patches/nodepools/amd/patch-cron.yaml
+  - target:
+      kind: NodePool
+      name: .*service.*
+    path: patches/nodepools/amd/patch-service.yaml
+  - target:
+      kind: NodePool
+      name: .*cicd.*
+    path: patches/nodepools/amd/patch-cicd.yaml
+  - target:
+      kind: NodePool
+      name: .*monitoring.*
+    path: patches/nodepools/amd/patch-monitoring.yaml
+  - target:
+      kind: NodePool
+      name: .*system-critical.*
+    path: patches/nodepools/amd/patch-system-critical.yaml
+  # 2. arm64
+  - target:
+      kind: NodePool
+      name: .*default-arm64.*
+    path: patches/nodepools/arm/patch-default.yaml
+  - target:
+      kind: NodePool
+      name: .*cron-arm64.*
+    path: patches/nodepools/arm/patch-cron.yaml
+  - target:
+      kind: NodePool
+      name: .*service-arm64.*
+    path: patches/nodepools/arm/patch-service.yaml
+  - target:
+      kind: NodePool
+      name: .*cicd-arm64.*
+    path: patches/nodepools/arm/patch-cicd.yaml
+  - target:
+      kind: NodePool
+      name: .*monitoring-arm64.*
+    path: patches/nodepools/arm/patch-monitoring.yaml
+  - target:
+      kind: NodePool
+      name: .*system-critical-arm64.*
+    path: patches/nodepools/arm/patch-system-critical.yaml
+  # NodePool amd64/arm64 settings
+  - target:
+      kind: NodePool
+      labelSelector: kubernetes.io/arch=arm
+    path: patches/nodepools/patch-arm.yaml
+  - target:
+      kind: NodePool
+      labelSelector: kubernetes.io/arch=amd
+    path: patches/nodepools/patch-amd.yaml
+
+  ###  duplicated-spot provisioner all - on-demand, spot 동시 사용이 필요할 경우 활성화하여 사용합니다.
+  ###    그 외에는 아래 {name: test}처럼 활용하거나 적용이 필요한 provisioner 파일에 직접 적용합니다.
+  #  - target:
+  #      kind: Provisioner
+  #      name: .*spot
+  #    path: patches/provisioners/patch-spots.yaml
+  - target:
+      kind: NodePool
+      name: test
+    path: patches/nodepools/patch-spot.yaml
+  - target:
+      kind: NodePool
+      name: test-arm64
+    path: patches/nodepools/patch-spot.yaml
+  
+  # Deprecated - AWSNodeTemplates, Provisioners
+  - target:
       kind: AWSNodeTemplate
       name: lyon-cluster.*
     path: patches/patch-node-templates.yaml
@@ -24,6 +107,10 @@ patches:
       kind: Provisioner
       name: .*default.*
     path: patches/provisioners/amd/patch-default.yaml
+  - target:
+      kind: Provisioner
+      name: .*cron.*
+    path: patches/provisioners/amd/patch-cron.yaml
   - target:
       kind: Provisioner
       name: .*service.*
@@ -45,6 +132,10 @@ patches:
       kind: Provisioner
       name: .*default-arm64.*
     path: patches/provisioners/arm/patch-default.yaml
+  - target:
+      kind: Provisioner
+      name: .*cron-arm64.*
+    path: patches/provisioners/arm/patch-cron.yaml
   - target:
       kind: Provisioner
       name: .*service-arm64.*
@@ -70,9 +161,24 @@ patches:
       kind: Provisioner
       labelSelector: kubernetes.io/arch=amd
     path: patches/provisioners/patch-amd.yaml
-
-  # duplicated-spot provisioner all
+  
+  ###  duplicated-spot provisioner all - on-demand, spot 동시 사용이 필요할 경우 활성화하여 사용합니다.
+  ###    그 외에는 아래 {name: test}처럼 활용하거나 적용이 필요한 provisioner 파일에 직접 적용합니다.
+  #  - target:
+  #      kind: Provisioner
+  #      name: .*spot
+  #    path: patches/provisioners/patch-spots.yaml
   - target:
       kind: Provisioner
-      name: .*spot
+      name: test
     path: patches/provisioners/patch-spot.yaml
+  - target:
+      kind: Provisioner
+      name: test-arm64
+    path: patches/provisioners/patch-spot.yaml
+
+  # provisioner legacy tagging
+  - target:
+      kind: Provisioner
+      name: .*
+    path: patches/provisioners/patch-legacy.yaml

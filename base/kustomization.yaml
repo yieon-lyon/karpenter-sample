@@ -2,11 +2,20 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # initial installation
-  - karpenter.yaml
-  - crds
-  # next installation
-  - node-templates
-  # set provisioner
+# initial installation
+#  - crds
+#  - configmaps.yaml
+#  - deployment.yaml
+#  - pdb.yaml
+#  - rbac.yaml
+#  - secret.yaml
+#  - service.yaml
+#  - serviceaccount.yaml
+#  - webhook.yaml
+# apply concepts
+#  - node-templates
   - provisioners/amd64
   - provisioners/arm64
+  - ec2nodeclasses
+  - nodepools/amd64
+  - nodepools/arm64

@@ -1,0 +1,41 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: system-critical
+spec:
+  disruption:
+    consolidateAfter: 10m0s
+    consolidationPolicy: WhenEmpty
+    expireAfter: Never
+  template:
+    metadata:
+      labels:
+        system-critical: "yes"
+    spec:
+      nodeClassRef:
+        name: lyon-cluster-ebs20
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values:
+            - t3
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values:
+            - medium
+            - large
+            - xlarge
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+            - ap-northeast-2a
+            - ap-northeast-2c
+        - key: eks.amazonaws.com/nodegroup
+          operator: In
+          values:
+            - system-critical
+      taints:
+        - effect: NoSchedule
+          key: system-critical
+          value: "yes"
+  weight: 10

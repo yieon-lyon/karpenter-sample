@@ -1,0 +1,37 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default-arm64
+spec:
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: Never
+  template:
+    metadata: {}
+    spec:
+      nodeClassRef:
+        name: lyon-cluster
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values:
+            - t4g
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values:
+            - medium
+            - large
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+            - ap-northeast-2a
+            - ap-northeast-2c
+        - key: eks.amazonaws.com/nodegroup
+          operator: In
+          values:
+            - default
+      taints:
+        - effect: NoSchedule
+          key: system-type
+          value: default
+  weight: 10

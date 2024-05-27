@@ -7,6 +7,8 @@ Karpenter Docs
 
 ### Releases
 ```text
+2024-05-27: v0.32.10
+2024-01-30: v0.31.4
 2023-09-22: v0.30.0
 2023-08-29: v0.29.2
 ```
@@ -25,7 +27,7 @@ Karpenter는 활용도가 낮은 노드를 제거하고 값비싼 노드를 저�
 
 ### **운영 오버헤드 최소화**
 
-Karpenter는 쉽게 사용자 정의할 수 있는 단일 선언적 리소스에 독자적인 기본값 세트와 함께 제공됩니다 **`Provisioner`**.
+Karpenter는 쉽게 사용자 정의할 수 있는 단일 선언적 리소스에 독자적인 기본값 세트와 함께 제공됩니다 **`NodePool`**.
 
 ## **작동 방식**
 
@@ -33,14 +35,42 @@ Karpenter는 쉽게 사용자 정의할 수 있는 단일 선언적 리소스에
 
 Karpenter는 예약되지 않은 포드의 총 리소스 요청을 관찰하고 예약 대기 시간과 인프라 비용을 최소화하기 위해 노드를 시작하고 종료하는 결정을 내립니다.
 
+---
+### [upgrading to v0.32.0+](https://karpenter.sh/v0.32/upgrading/v1beta1-migration/)
+
+alpha 매니페스트를 beta 매니페스트로 변환하는데 도움이 되는 도구 설치
+```bash
+$ go install github.com/aws/karpenter/tools/karpenter-convert/cmd/karpenter-convert@release-v0.32.x
+```
+Convert to EC2NodeClass
+```bash
+$ karpenter-convert -f awsnodetemplate.yaml | envsubst > ec2nodeclass.yaml
+```
+Convert to NodePool
+```bash
+$ karpenter-convert -f provisioner.yaml > nodepool.yaml
+```
+
+Roll over nodes: Add the following taint to the old Provisioner: karpenter.sh/legacy=true:NoSchedule
+
+```bash
+# provisioners
+$ kubectl get machines
+> No resources found
+
+# nodepools
+$ kubectl get nodeclaims
+```
+---
+
 ## **structures**
 - base
   - manifest
   - crd
-  - aws-note-templates
-  - provisioners
+  - ec2nodeclasses
+  - nodepools
 - duplicated-spot
-  - provisioners
+  - nodepools
 - init-provisioning
   - (CAS에서 Karpenter로 migration시 안정적인 Pod 전환을 위한 항목)
 - over-provisioning
@@ -50,15 +80,16 @@ Karpenter는 예약되지 않은 포드의 총 리소스 요청을 관찰하고 
   - envs(dev, staging)
     - patches
       - common ...
-      - provisioners/
+      - nodepools/
     - specific
       - add custom
 
-#### karpenter kustomize의 provisioner는 다음의 목적성을 가진 NodeGroups에 대해 정의합니다.
-  - default
-  - service
-  - monitoring
+#### karpenter kustomize의 nodepools는 다음의 목적성을 가진 NodeGroups에 대해 정의합니다.
   - cicd
+  - cron
+  - default
+  - monitoring
+  - service
   - system-critical
 
 ## **role binding**
@@ -82,36 +113,48 @@ Karpenter를 사용하기 위한 Cluster, Node Role을 설정해야 합니다.
   ```
 
 ## **pre-settings**
-클러스터별 노드의 활용에 따른 Provisioner spec을 정의해주어야 합니다.
-관련 내용은 karpenter/overlays/platform/patches/provisioners에서 확인 할 수 있습니다.
+클러스터별 노드의 활용에 따른 NodePool spec을 정의해주어야 합니다.
+관련 내용은 karpenter/overlays/platform/patches/nodepools에서 확인 할 수 있습니다.
 - ex. 
   ```yaml
-  apiVersion: karpenter.sh/v1alpha5
-  kind: Provisioner
+  apiVersion: karpenter.sh/v1beta1
+  kind: NodePool
   metadata:
     name: default
   spec:
-    requirements:
-      - key: karpenter.k8s.aws/instance-family
-        operator: In
-        values: [ t3, t3a ]
-      - key: karpenter.k8s.aws/instance-size
-        operator: In
-        values: [ medium, large ]
-      - key: topology.kubernetes.io/zone
-        operator: In
-        values: [ ap-northeast-2a, ap-northeast-2c ]
-      - key: eks.amazonaws.com/nodegroup
-        operator: In
-        values: [ default, platform, lyon-gateway ]
-      - key: capacity-spread # karpenter.sh/capacity-type = on-demand (default)
-        operator: In
-        values: [ "on-demand-1", "on-demand-2" ]
-    ttlSecondsUntilExpired: 604800
-    ttlSecondsAfterEmpty: 30
+    disruption:
+      consolidationPolicy: WhenUnderutilized
+      expireAfter: Never
+    template:
+      metadata: {}
+      spec:
+        nodeClassRef:
+          name: lyon-cluster
+        requirements:
+          - key: karpenter.k8s.aws/instance-family
+            operator: In
+            values:
+              - t3
+              - t3a
+          - key: karpenter.k8s.aws/instance-size
+            operator: In
+            values:
+              - medium
+              - large
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+              - ap-northeast-2a
+              - ap-northeast-2c
+          - key: eks.amazonaws.com/nodegroup
+            operator: In
+            values:
+              - default
+        taints:
+          - effect: NoSchedule
+            key: system-type
+            value: default
     weight: 10
-    providerRef:
-      name: lyon-cluster
   ```
 ## **get started**
 ```bash
