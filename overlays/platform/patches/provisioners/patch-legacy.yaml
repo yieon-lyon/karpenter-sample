@@ -1,0 +1,6 @@
+- op: add
+  path: /spec/taints/0
+  value:
+    key: karpenter.sh/legacy
+    effect: NoSchedule
+    value: "true"

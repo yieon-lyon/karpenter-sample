@@ -173,6 +173,19 @@ function AddTagSGAndSubnetByCluster() {
       --resources ${SECURITY_GROUPS}
 }
 
+function MigratePolicy {
+  TEMPOUT=$(mktemp)
+  curl -fsSL https://raw.githubusercontent.com/aws/karpenter-provider-aws/v0.32.10/website/content/en/preview/upgrading/v1beta1-controller-policy.json > ${TEMPOUT}
+
+  POLICY_DOCUMENT=$(envsubst < ${TEMPOUT})
+  POLICY_NAME="KarpenterControllerPolicy-${CLUSTER_NAME}-v1beta1"
+  ROLE_NAME="KarpenterControllerRole-${CLUSTER_NAME}"
+
+  POLICY_ARN=$(aws iam create-policy --policy-name "${POLICY_NAME}" --policy-document "${POLICY_DOCUMENT}" | jq -r .Policy.Arn)
+  aws iam attach-role-policy --role-name "${ROLE_NAME}" --policy-arn "${POLICY_ARN}"
+}
+
 CreateIAMRole
 CreateControllerPolicy
 AddTagSGAndSubnetByCluster
+MigratePolicy

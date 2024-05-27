@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - default.yaml
+  - cron.yaml
   - cicd.yaml
   - service.yaml
   - monitoring.yaml
