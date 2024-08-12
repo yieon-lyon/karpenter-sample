@@ -4,12 +4,12 @@ metadata:
   name: lyon-cluster*
 spec:
   amiFamily: AL2
-  role: KarpenterNodeRole-lyon-cluster-platform
+  role: lyon-cluster
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "lyon-cluster-platform"
+        karpenter.sh/discovery: lyon-cluster
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "lyon-cluster"
-  metadataOptions:
-    httpTokens: optional
+        karpenter.sh/discovery: lyon-cluster
+  tags:
+    karpenter.sh/discovery: lyon-cluster
