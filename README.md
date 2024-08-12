@@ -98,46 +98,47 @@ $ kubectl get nodeclaims
 클러스터별 노드의 활용에 따른 NodePool spec을 정의해주어야 합니다.
 관련 내용은 karpenter/overlays/platform/patches/nodepools에서 확인 할 수 있습니다.
 - ex. 
-  ```yaml
-  apiVersion: karpenter.sh/v1beta1
-  kind: NodePool
-  metadata:
-    name: default
-  spec:
-    disruption:
-      consolidationPolicy: WhenUnderutilized
-      expireAfter: Never
-    template:
-      metadata: {}
-      spec:
-        nodeClassRef:
-          name: lyon-cluster
-        requirements:
-          - key: karpenter.k8s.aws/instance-family
-            operator: In
-            values:
-              - t3
-              - t3a
-          - key: karpenter.k8s.aws/instance-size
-            operator: In
-            values:
-              - medium
-              - large
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values:
-              - ap-northeast-2a
-              - ap-northeast-2c
-          - key: eks.amazonaws.com/nodegroup
-            operator: In
-            values:
-              - default
-        taints:
-          - effect: NoSchedule
-            key: system-type
-            value: default
-    weight: 10
-  ```
+```yaml
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: Never
+  template:
+    metadata: {}
+    spec:
+      nodeClassRef:
+        name: lyon-cluster
+      requirements:
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: [ "m" ]
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: [ "2", "4" ]
+        - key: karpenter.k8s.aws/instance-hypervisor
+          operator: In
+          values: [ "nitro" ]
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: [ "2" ]
+        - key: kubernetes.io/arch
+          operator: In
+          values: [ "amd64", "arm64" ]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: [ "on-demand", "spot" ]
+        - key: eks.amazonaws.com/nodegroup
+          operator: In
+          values: [ "default" ]
+      taints:
+        - effect: NoSchedule
+          key: system-type
+          value: default
+```
 
 ## **installation**
 ```bash
