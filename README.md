@@ -7,6 +7,7 @@ Karpenter Docs
 
 ### Releases
 ```text
+2024-08-12: v0.32.10 by terraform
 2024-05-27: v0.32.10
 2024-01-30: v0.31.4
 2023-09-22: v0.30.0
@@ -65,11 +66,7 @@ $ kubectl get nodeclaims
 
 ## **structures**
 - base
-  - manifest
-  - crd
   - ec2nodeclasses
-  - nodepools
-- duplicated-spot
   - nodepools
 - init-provisioning
   - (CAS에서 Karpenter로 migration시 안정적인 Pod 전환을 위한 항목)
@@ -83,6 +80,8 @@ $ kubectl get nodeclaims
       - nodepools/
     - specific
       - add custom
+- terraform
+  - (karpenter installation)
 
 #### karpenter kustomize의 nodepools는 다음의 목적성을 가진 NodeGroups에 대해 정의합니다.
   - cicd
@@ -92,25 +91,8 @@ $ kubectl get nodeclaims
   - service
   - system-critical
 
-## **role binding**
-Karpenter를 사용하기 위한 Cluster, Node Role을 설정해야 합니다.
-- ex.
-    - KarpenterControllerRole-lyon-cluster-platform
-    - KarpenterNodeRole-lyon-cluster-platform
-- [Migrating from Cluster Autoscaler 참조](https://karpenter.sh/docs/getting-started/migrating-from-cas/)
-  - 설정을 위한 scripts는 DevOps에서 관리
-    - 관련 스크립트 코드는 git secret을 적용하여 관리합니다.
-      - karpenter-role.sh.secret
-
-추가로 Karpenter가 권한을 획득하기 위해 aws-auth.yaml에 role을 추가해주어야 합니다.
-- ex.
-  ```yaml
-  - groups:
-    - system:bootstrappers
-    - system:nodes
-    rolearn: arn:aws:iam::XXXXXXXX:role/KarpenterNodeRole-lyon-cluster-platform
-    username: system:node:{{EC2PrivateDNSName}}
-  ```
+## **~~role binding~~**
+- terraform 사용으로 추가 설정이 필요하지 않습니다.
 
 ## **pre-settings**
 클러스터별 노드의 활용에 따른 NodePool spec을 정의해주어야 합니다.
@@ -156,8 +138,14 @@ Karpenter를 사용하기 위한 Cluster, Node Role을 설정해야 합니다.
             value: default
     weight: 10
   ```
+
+## **installation**
+```bash
+terraform init
+AWS_PROFILE={{YOUR_AWS_PROFILE}} terraform apply -auto-approve
+```
+
 ## **get started**
 ```bash
 kubectl apply -k platform
-kubectl apply -k staging
 ```

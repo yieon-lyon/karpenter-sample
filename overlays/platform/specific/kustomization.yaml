@@ -2,7 +2,4 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - provisioners/amd/test.yaml
-  - provisioners/arm/test.yaml
-  - nodepools/amd/test.yaml
-  - nodepools/arm/test.yaml
+  - nodepools/test.yaml
