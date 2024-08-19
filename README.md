@@ -7,6 +7,7 @@ Karpenter Docs
 
 ### Releases
 ```text
+2024-08-19: v0.33.6
 2024-08-12: v0.32.10 by terraform
 2024-05-27: v0.32.10
 2024-01-30: v0.31.4
