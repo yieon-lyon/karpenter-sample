@@ -7,6 +7,7 @@ Karpenter Docs
 
 ### Releases
 ```text
+2025-01-07: 0.36.2
 2024-08-19: v0.33.6
 2024-08-12: v0.32.10 by terraform
 2024-05-27: v0.32.10
@@ -150,4 +151,10 @@ AWS_PROFILE={{YOUR_AWS_PROFILE}} terraform apply -auto-approve
 ## **get started**
 ```bash
 kubectl apply -k platform
+```
+
+## **migration**
+v0.33.6 to 0.36.2
+```bash
+./migrate.sh
 ```
