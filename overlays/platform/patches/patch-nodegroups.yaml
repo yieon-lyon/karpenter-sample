@@ -1,0 +1,233 @@
+# Platform-specific configuration for nodegroups
+
+# Platform uses spot instances for cost optimization
+nodepool:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]  # Prefer spot instances
+    - key: topology.kubernetes.io/zone
+      operator: In
+      values: ["ap-northeast-2a", "ap-northeast-2c"]
+    - key: karpenter.k8s.aws/instance-hypervisor
+      operator: In
+      values: ["nitro"]
+    - key: karpenter.k8s.aws/instance-generation
+      operator: Gt
+      values: ["5"]
+    - key: kubernetes.io/arch
+      operator: In
+      values: ["amd64", "arm64"]
+
+# Environment-specific nodegroups (will be merged with baseNodegroups)
+envNodeGroups:
+  # Standard services (inherit from base + platform requirements)
+  - name: standard-services
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+    terminationGracePeriod: 3m
+
+  - name: cpu-optimized-ebs20
+    services: ["cpu-01"]
+    storage:
+      volumeSize: 20Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["c"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+    terminationGracePeriod: 3m
+
+  - name: balanced-ebs50
+    services: ["balanced-01"]
+    storage:
+      volumeSize: 50Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["c", "m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+    terminationGracePeriod: 3m
+
+  - name: general-purpose-ebs50
+    services: ["general-01"]
+    storage:
+      volumeSize: 50Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+    terminationGracePeriod: 3m
+
+  # Platform-specific: Additional services
+  - name: additional-services
+    services: ["test"]
+    storage:
+      volumeSize: 20Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+    terminationGracePeriod: 3m
+
+  - name: platform
+    services: ["platform"]
+    storage:
+      volumeSize: 20Gi
+    disruption:
+      consolidateAfter: 5m
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      budgets:
+        - nodes: "0"
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["on-demand"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+
+  - name: chaos-mesh
+    services: ["chaos-mesh"]
+    storage:
+      volumeSize: 20Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: chaos-mesh
+    terminationGracePeriod: 3m
+    limits:
+      nodes: 100
+
+  - name: default
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints: []
+    terminationGracePeriod: 3m
+
+  - name: cicd
+    storage:
+      volumeSize: 30Gi
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["c"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: cicd
+
+  - name: cron
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["c"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: cron
+    kubelet:
+      maxPods: 20
+
+  - name: monitoring
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["r"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4", "8"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: monitoring
+
+  - name: system-critical
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: In
+        values: ["2", "4"]
+    taints:
+      - effect: NoSchedule
+        key: system-critical
+        value: "yes"
+    labels:
+      system-critical: "yes"
+
+# EC2NodeClass settings specific to platform environment
+ec2nodeclass:
+  role: KarpenterNodeRole-my-cluster
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "my-cluster"
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "my-cluster"
+  metadataOptions:
+    httpTokens: optional
+  tags:
+    karpenter.sh/discovery: my-cluster
+    Env: platform

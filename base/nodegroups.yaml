@@ -1,0 +1,57 @@
+# ./charts/nodegroups values.yaml
+
+# Base nodegroup definitions
+baseNodeGroups:
+  - name: standard-services
+    services: [
+      "service-1", "service-2"
+    ]
+    storage:
+      volumeSize: 20Gi
+
+  - name: default
+    services: ["default"]
+    storage:
+      volumeSize: 30Gi
+
+  - name: cicd
+    services: ["cicd"]
+    storage:
+      volumeSize: 20Gi
+
+  - name: cron
+    services: ["cron"]
+    storage:
+      volumeSize: 30Gi
+
+  - name: monitoring
+    services: ["monitoring"]
+    storage:
+      volumeSize: 20Gi
+
+  - name: system-critical
+    services: ["system-critical"]
+    storage:
+      volumeSize: 20Gi
+
+# Base EC2NodeClass configuration template
+ec2nodeclass:
+  amiSelectorTerms:
+    - alias: al2023@latest
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeType: gp3
+        deleteOnTermination: true
+        # volumeSize will be set per nodegroup
+  tags:
+    Team: devops
+
+# Base NodePool configuration template
+nodepool:
+  disruption:
+    consolidateAfter: 5m
+    consolidationPolicy: WhenEmptyOrUnderutilized
+  template:
+    spec:
+      expireAfter: Never

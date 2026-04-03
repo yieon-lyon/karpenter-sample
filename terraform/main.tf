@@ -4,11 +4,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 5.34"
+      version = ">= 5.34, < 6.0"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.9"
+      version = ">= 2.11.0, < 3.0"
     }
   }
 }
@@ -17,10 +17,9 @@ provider "aws" {
   region = local.region
 }
 
-# Required for public ECR where Karpenter artifacts are hosted
 provider "aws" {
+  alias  = "ecr"
   region = "us-east-1"
-  alias  = "virginia"
 }
 
 provider "helm" {
@@ -42,10 +41,16 @@ provider "helm" {
 ################################################################################
 
 data "aws_ecrpublic_authorization_token" "token" {
-  provider = aws.virginia
+  provider = aws.ecr
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  # Do not include local zones
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 locals {
   name   = "lyon-cluster"
@@ -56,6 +61,10 @@ locals {
     cluster_certificate_authority_data = "{{YOUR_CLUSTER_CERTIFICATE}}"
   }
   tags = {
-    cluster  = local.name
+    Blueprint  = local.name
+    GithubRepo = "github.com/aws-ia/terraform-aws-eks-blueprints"
+    Team       = "devops"
+    Env        = "dev"
+    Service    = "karpenter"
   }
 }

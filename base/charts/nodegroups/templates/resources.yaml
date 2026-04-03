@@ -1,0 +1,130 @@
+{{- /* Merge base and env nodegroups */ -}}
+{{- $allNodeGroups := list }}
+{{- range .Values.baseNodeGroups }}
+  {{- $baseNodeGroup := . }}
+  {{- $envConfig := dict }}
+  {{- range $.Values.envNodeGroups }}
+    {{- if eq .name $baseNodeGroup.name }}
+      {{- $envConfig = . }}
+    {{- end }}
+  {{- end }}
+  {{- $merged := merge $envConfig $baseNodeGroup }}
+  {{- $allNodeGroups = append $allNodeGroups $merged }}
+{{- end }}
+
+{{- /* Add env-only nodegroups */ -}}
+{{- range .Values.envNodeGroups }}
+  {{- $envNodeGroup := . }}
+  {{- $existsInBase := false }}
+  {{- range $.Values.baseNodeGroups }}
+    {{- if eq .name $envNodeGroup.name }}
+      {{- $existsInBase = true }}
+    {{- end }}
+  {{- end }}
+  {{- if not $existsInBase }}
+    {{- $allNodeGroups = append $allNodeGroups $envNodeGroup }}
+  {{- end }}
+{{- end }}
+
+{{- /* Generate resources for all nodegroups */ -}}
+{{- range $allNodeGroups }}
+{{- $nodegroup := . }}
+{{- range .services }}
+---
+# EC2NodeClass for {{ . }}
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: {{ . }}
+spec:
+  role: {{ $.Values.ec2nodeclass.role }}
+  amiSelectorTerms:
+    {{- toYaml $.Values.ec2nodeclass.amiSelectorTerms | nindent 4 }}
+  securityGroupSelectorTerms:
+    {{- toYaml $.Values.ec2nodeclass.securityGroupSelectorTerms | nindent 4 }}
+  subnetSelectorTerms:
+    {{- toYaml $.Values.ec2nodeclass.subnetSelectorTerms | nindent 4 }}
+  {{- if $.Values.ec2nodeclass.metadataOptions }}
+  metadataOptions:
+    {{- toYaml $.Values.ec2nodeclass.metadataOptions | nindent 4 }}
+  {{- end }}
+  blockDeviceMappings:
+    {{- range $.Values.ec2nodeclass.blockDeviceMappings }}
+    - deviceName: {{ .deviceName }}
+      ebs:
+        volumeType: {{ .ebs.volumeType }}
+        volumeSize: {{ $nodegroup.storage.volumeSize | default "20Gi" }}
+        deleteOnTermination: {{ .ebs.deleteOnTermination }}
+    {{- end }}
+  {{- if $nodegroup.kubelet }}
+  kubelet:
+    {{- toYaml $nodegroup.kubelet | nindent 8 }}
+  {{- end }}
+  tags:
+    {{- toYaml $.Values.ec2nodeclass.tags | nindent 4 }}
+    Service: {{ . }}
+---
+# NodePool for {{ . }}
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: {{ . }}
+spec:
+  {{- if $nodegroup.disruption }}
+  disruption:
+    {{- toYaml $nodegroup.disruption | nindent 4 }}
+  {{- else if $.Values.nodepool.disruption }}
+  disruption:
+    {{- toYaml $.Values.nodepool.disruption | nindent 4 }}
+  {{- end }}
+  template:
+    {{- if $nodegroup.labels }}
+    metadata:
+      labels:
+        {{- toYaml $nodegroup.labels | nindent 8 }}
+    {{- else }}
+    metadata: {}
+    {{- end }}
+    spec:
+      expireAfter: {{ $.Values.nodepool.template.spec.expireAfter | default "Never" }}
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: {{ . }}
+      requirements:
+        {{- $finalRequirements := list }}
+        {{- $requirementKeys := dict }}
+        
+        {{- if $nodegroup.requirements }}
+          {{- range $nodegroup.requirements }}
+            {{- $finalRequirements = append $finalRequirements . }}
+            {{- $_ := set $requirementKeys .key true }}
+          {{- end }}
+        {{- end }}
+        
+        {{- if $.Values.nodepool.requirements }}
+          {{- range $.Values.nodepool.requirements }}
+            {{- if not (hasKey $requirementKeys .key) }}
+              {{- $finalRequirements = append $finalRequirements . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        
+        {{- toYaml $finalRequirements | nindent 8 }}
+        - key: eks.amazonaws.com/nodegroup
+          operator: In
+          values: ["{{ . }}"]
+      {{- if $nodegroup.taints }}
+      taints:
+        {{- toYaml $nodegroup.taints | nindent 8 }}
+      {{- end }}
+      {{- if $nodegroup.terminationGracePeriod }}
+      terminationGracePeriod: {{ $nodegroup.terminationGracePeriod }}
+      {{- end }}
+  {{- if $nodegroup.limits }}
+  limits:
+    {{- toYaml $nodegroup.limits | nindent 4 }}
+  {{- end }}
+  weight: 10
+{{- end }}
+{{- end }}

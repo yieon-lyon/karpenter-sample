@@ -1,8 +1,18 @@
+locals {
+  namespace = "karpenter"
+}
+
+################################################################################
+# Controller & Node IAM roles, SQS Queue, Eventbridge Rules
+################################################################################
+
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "~> 20.11"
+  version = "~> 20.24"
 
-  cluster_name = local.eks.cluster_name
+  cluster_name          = local.eks.cluster_name
+  enable_v1_permissions = true
+  namespace             = local.namespace
 
   # Name needs to match role name passed to the EC2NodeClass
   node_iam_role_use_name_prefix   = false
@@ -17,29 +27,36 @@ module "karpenter" {
 ################################################################################
 
 resource "helm_release" "karpenter" {
-  namespace           = "kube-system"
   name                = "karpenter"
+  namespace           = local.namespace
+  create_namespace    = true
   repository          = "oci://public.ecr.aws/karpenter"
-  repository_username = data.aws_ecrpublic_authorization_token.token.user_name
-  repository_password = data.aws_ecrpublic_authorization_token.token.password
+  # repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+  # repository_password = data.aws_ecrpublic_authorization_token.token.password
   chart               = "karpenter"
-  version             = "0.36.2"
-  wait                = false
+  version             = "1.8.6"
+  wait                = true
 
   values = [
     <<-EOT
+    service:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
     nodeSelector:
       karpenter.sh/controller: 'true'
+    settings:
+      clusterName: ${local.eks.cluster_name}
+      clusterEndpoint: ${local.eks.cluster_endpoint}
+      interruptionQueue: ${module.karpenter.queue_name}
     tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
       - key: karpenter.sh/controller
         operator: Exists
         effect: NoSchedule
-    settings:
-      clusterName: ${local.eks.cluster_name}
-      clusterEndpoint: ${local.eks.cluster_endpoint}
-      interruptionQueue: ${module.karpenter.queue_name}
+    webhook:
+      enabled: false
     EOT
   ]
 

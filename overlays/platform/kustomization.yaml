@@ -2,38 +2,24 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # Main
   - ../../base
-  # [README 참조]
-  - specific
+
+helmGlobals:
+  chartHome: ../../base/charts/
+
+helmCharts:
+  - name: nodegroups
+    releaseName: nodegroups
+    includeCRDs: false
+    valuesFile: ../../base/nodegroups.yaml
+    additionalValuesFiles:
+      - patches/patch-nodegroups.yaml
 
 patches:
   - target:
-      kind: EC2NodeClass
-      name: lyon-cluster.*
-    path: patches/patch-ec2nodeclasses.yaml
-  # Common nodepool settings
+      kind: Deployment
+      name: karpenter
+    path: patches/patch-deployment.yaml
   - target:
-      kind: NodePool
-      name: .*default.*
-    path: patches/nodepools/patch-default.yaml
-  - target:
-      kind: NodePool
-      name: .*cron.*
-    path: patches/nodepools/patch-cron.yaml
-  - target:
-      kind: NodePool
-      name: .*service.*
-    path: patches/nodepools/patch-service.yaml
-  - target:
-      kind: NodePool
-      name: .*cicd.*
-    path: patches/nodepools/patch-cicd.yaml
-  - target:
-      kind: NodePool
-      name: .*monitoring.*
-    path: patches/nodepools/patch-observability.yaml
-  - target:
-      kind: NodePool
-      name: .*system-critical.*
-    path: patches/nodepools/patch-system-critical.yaml
+      kind: ServiceAccount
+    path: patches/patch-service-account.yaml

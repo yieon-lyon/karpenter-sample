@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karpenter
+  namespace: karpenter
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          env:
+            - name: CLUSTER_NAME
+              value: my-cluster
+            - name: INTERRUPTION_QUEUE
+              value: my-cluster

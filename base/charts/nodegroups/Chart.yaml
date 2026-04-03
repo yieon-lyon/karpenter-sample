@@ -1,0 +1,4 @@
+apiVersion: v2
+name: nodegroups
+description: Karpenter nodegroup 1:1 mapping for cost tracking and tagging
+version: 1.0.0

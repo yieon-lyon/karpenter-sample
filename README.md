@@ -7,6 +7,7 @@ Karpenter Docs
 
 ### Releases
 ```text
+2026-04-03: 1.8.6
 2025-01-07: 0.36.2
 2024-08-19: v0.33.6
 2024-08-12: v0.32.10 by terraform
@@ -39,122 +40,103 @@ Karpenter는 쉽게 사용자 정의할 수 있는 단일 선언적 리소스에
 Karpenter는 예약되지 않은 포드의 총 리소스 요청을 관찰하고 예약 대기 시간과 인프라 비용을 최소화하기 위해 노드를 시작하고 종료하는 결정을 내립니다.
 
 ---
-### [upgrading to v0.32.0+](https://karpenter.sh/v0.32/upgrading/v1beta1-migration/)
+### Directory Structure
 
-alpha 매니페스트를 beta 매니페스트로 변환하는데 도움이 되는 도구 설치
-```bash
-$ go install github.com/aws/karpenter/tools/karpenter-convert/cmd/karpenter-convert@release-v0.32.x
 ```
-Convert to EC2NodeClass
-```bash
-$ karpenter-convert -f awsnodetemplate.yaml | envsubst > ec2nodeclass.yaml
+autoscaling/karpenter/
+├── base/
+│   ├── nodegroups.yaml                    # Base nodegroup definitions
+│   └── charts/nodegroups/
+│       ├── Chart.yaml
+│       └── templates/resources.yaml       # Helm template for generating resources
+└── overlays/
+    ├── prod/
+    │   ├── kustomization.yaml
+    │   └── patches/patch-nodegroups.yaml  # specific configurations
+    ├── dev/
+    │   ├── kustomization.yaml
+    │   └── patches/patch-nodegroups.yaml  # specific configurations
+    └── [other-envs]/
+        ├── kustomization.yaml
+        └── patches/patch-nodegroups.yaml
 ```
-Convert to NodePool
-```bash
-$ karpenter-convert -f provisioner.yaml > nodepool.yaml
-```
 
-Roll over nodes: Add the following taint to the old Provisioner: karpenter.sh/legacy=true:NoSchedule
+## Configuration Structure
 
-```bash
-# provisioners
-$ kubectl get machines
-> No resources found
+### 1. baseNodeGroups (base/nodegroups.yaml)
 
-# nodepools
-$ kubectl get nodeclaims
-```
----
+환경에 무관한 공통 nodegroup 정의를 포함합니다.
 
-## **structures**
-- base
-  - ec2nodeclasses
-  - nodepools
-- init-provisioning
-  - (CAS에서 Karpenter로 migration시 안정적인 Pod 전환을 위한 항목)
-- over-provisioning
-  - (서비스의 고가용성 확보 및 업타임 속도 개선을 위한 항목)
-    - ex. pod uptime 60~70s -> 10~15s
-- overlays
-  - envs(dev, staging)
-    - patches
-      - common ...
-      - nodepools/
-    - specific
-      - add custom
-- terraform
-  - (karpenter installation)
-
-#### karpenter kustomize의 nodepools는 다음의 목적성을 가진 NodeGroups에 대해 정의합니다.
-  - cicd
-  - cron
-  - default
-  - monitoring
-  - service
-  - system-critical
-
-## **~~role binding~~**
-- terraform 사용으로 추가 설정이 필요하지 않습니다.
-
-## **pre-settings**
-클러스터별 노드의 활용에 따른 NodePool spec을 정의해주어야 합니다.
-관련 내용은 karpenter/overlays/platform/patches/nodepools에서 확인 할 수 있습니다.
-- ex. 
 ```yaml
-apiVersion: karpenter.sh/v1beta1
-kind: NodePool
-metadata:
-  name: default
-spec:
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: Never
-  template:
-    metadata: {}
-    spec:
-      nodeClassRef:
-        name: lyon-cluster
-      requirements:
-        - key: karpenter.k8s.aws/instance-category
-          operator: In
-          values: [ "m" ]
-        - key: karpenter.k8s.aws/instance-cpu
-          operator: In
-          values: [ "2", "4" ]
-        - key: karpenter.k8s.aws/instance-hypervisor
-          operator: In
-          values: [ "nitro" ]
-        - key: karpenter.k8s.aws/instance-generation
-          operator: Gt
-          values: [ "2" ]
-        - key: kubernetes.io/arch
-          operator: In
-          values: [ "amd64", "arm64" ]
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: [ "on-demand", "spot" ]
-        - key: eks.amazonaws.com/nodegroup
-          operator: In
-          values: [ "default" ]
-      taints:
-        - effect: NoSchedule
-          key: system-type
-          value: default
+baseNodeGroups:
+  - name: standard-services
+    services: [
+      "a-service", "b-service", "c-service", 
+      # ... 기타 표준 서비스들
+    ]
+    storage:
+      volumeSize: 20Gi
+
+  - name: default
+    services: ["default"]
+    storage:
+      volumeSize: 30Gi
+  
+  # ... 기타 시스템 nodegroup들
+```
+
+### 2. envNodeGroups (overlays/*/patches/patch-nodegroups.yaml)
+
+환경별 특화 설정과 추가 nodegroup을 정의합니다.
+
+```yaml
+envNodeGroups:
+  # Base nodegroup 오버라이드
+  - name: standard-services
+    nodeclass:
+      baseName: my-cluster-ebs20
+    requirements:
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values: ["m"]
+    taints:
+      - effect: NoSchedule
+        key: system-type
+        value: service
+
+  # 환경별 추가 nodegroup
+  - name: cpu-optimized-ebs20
+    services: ["cpu-1"]
+    storage:
+      volumeSize: 20Gi
+    # ... 기타 설정
+```
+
+### 3. Merge values
+
+Helm 템플릿이 다음 순서로 설정을 병합합니다:
+
+1. **Base + Env 병합**: 동일한 `name`을 가진 nodegroup은 env 설정이 base 설정을 오버라이드
+2. **Env 전용 추가**: env에만 존재하는 nodegroup은 그대로 추가
+3. **리소스 생성**: 각 서비스별로 개별 NodePool과 EC2NodeClass 생성
+
+```yaml
+# 병합 결과 예시
+merged_nodegroup = merge(envNodeGroups[name], baseNodeGroups[name])
 ```
 
 ## **installation**
+
+### 1. terraform install
 ```bash
 terraform init
 AWS_PROFILE={{YOUR_AWS_PROFILE}} terraform apply -auto-approve
+# TODO overlays/platform/kustomization.yaml의 resources field를 제거해야 합니다.
+# nodepool, ec2nc apply
+kustomize build ./overlays/platform --enable-helm --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
 ```
 
-## **get started**
+### 2. kustomize install
 ```bash
-kubectl apply -k platform
-```
-
-## **migration**
-v0.33.6 to 0.36.2
-```bash
-./migrate.sh
+kustomize build ./overlays/platform --enable-helm --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
 ```
